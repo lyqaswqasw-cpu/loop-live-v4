@@ -259,17 +259,33 @@
 
         // --- Player & Chat ---
         window.launchStream = function(id) {
-            const url = dataLinks[id];
-            if(!url) return alert('البث متوقف حالياً');
-            document.getElementById('playerView').style.display = 'flex';
-            dp = new DPlayer({
-                container: document.getElementById('dplayer'),
-                live: true,
-                video: { url: url, type: 'customHls', customType: {
-                    customHls: (v) => { const hls = new Hls(); hls.loadSource(v.src); hls.attachMedia(v); }
-                }}
-            });
+    const url = dataLinks[id];
+    if(!url) return alert('البث متوقف حالياً');
+    
+    // استخدام بروكسي لتشغيل الروابط غير المشفرة على Vercel
+    const finalUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+
+    document.getElementById('playerView').style.display = 'flex';
+    
+    if(dp) { dp.destroy(); } // حذف أي مشغل قديم
+
+    dp = new DPlayer({
+        container: document.getElementById('dplayer'),
+        live: true,
+        video: { 
+            url: finalUrl, 
+            type: 'customHls',
+            customType: {
+                customHls: (v) => {
+                    const hls = new Hls();
+                    hls.loadSource(v.src);
+                    hls.attachMedia(v);
+                }
+            }
         }
+    });
+};
+
 
         window.startStream = function() {
             document.getElementById('start-overlay').style.display = 'none';
